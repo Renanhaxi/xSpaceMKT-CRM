@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>xSpaceMKT - CRM & Gestão Operacional e Financeira</title>
+  <link rel="icon" type="image/jpeg" href="./assets/logo.jpg">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              orange: '#FF6A00',
+              'orange-hover': '#E55F00',
+              'orange-dark': '#B34A00',
+              dark: '#080C14',
+              surface: '#0F1726',
+              border: '#1E293B',
+              slate: '#141C2E'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Custom CSS -->
+  <link rel="stylesheet" href="./css/styles.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- html2pdf CDN for generating branded company PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-[#080C14] text-slate-100 min-h-screen antialiased selection:bg-orange-500 selection:text-white">
+
+  <!-- Top Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- FULLSCREEN LOCK SCREEN OVERLAY -->
+  <div id="app-lock-overlay" class="hidden">
+    <div id="lock-screen-card" class="glass-panel p-8 rounded-3xl border border-orange-500/30 max-w-sm w-full mx-4 shadow-2xl text-center relative overflow-hidden bg-[#0A0F1A]/95">
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500"></div>
+      
+      <!-- Lock Screen Header (No photo, clean modern typography) -->
+      <div class="mb-5">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xl font-bold mb-3 shadow-inner">
+          🔒
+        </div>
+        <h2 class="text-2xl font-extrabold text-white font-heading tracking-tight leading-none">
+          xSpace<span class="text-orange-500">MKT</span>
+        </h2>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">
+          Marketing que Impulsiona
+        </p>
+      </div>
+
+      <div class="my-5 p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800">
+        <div class="flex items-center justify-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span>ACESSO PROTEGIDO</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Digite a senha para acessar o painel operacional e financeiro da agência.</p>
+      </div>
+
+      <form id="form-unlock-app" onsubmit="event.preventDefault(); window.XSpace.App.unlockSystem();" class="space-y-3.5">
+        <div class="relative">
+          <input type="password" id="input-lock-password" placeholder="Digite sua senha..." autocomplete="current-password" autofocus
+                 onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.XSpace.App.unlockSystem(); }"
+                 class="w-full bg-slate-950 border border-slate-700 focus:border-orange-500 rounded-xl px-4 py-3 text-center text-white text-base tracking-widest font-mono focus:outline-none transition-all placeholder:text-slate-600 placeholder:tracking-normal placeholder:font-sans">
+          <button type="button" onclick="window.XSpace.App.togglePasswordVisibility('input-lock-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs p-1" title="Ver/ocultar senha">
+            👁️
+          </button>
+        </div>
+
+        <div id="lock-error-msg" class="text-xs text-rose-400 font-semibold min-h-[16px]"></div>
+
+        <button type="submit" onclick="window.XSpace.App.unlockSystem()" class="w-full py-3 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg glow-orange transition-all flex items-center justify-center gap-2 cursor-pointer">
+          <span>Desbloquear Painel</span>
+          <span>🔓</span>
+        </button>
+      </form>
+
+      <div class="mt-5 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500">
+        <span>Senha padrão: </span><code class="text-orange-400 font-bold bg-orange-500/10 px-1.5 py-0.5 rounded">1234</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP SIDEBAR -->
+  <aside class="desktop-sidebar fixed top-0 left-0 h-full w-[280px] bg-[#0A0F1A] border-r border-[#1E293B] flex-col justify-between z-30">
+    <div>
+      <!-- Brand Logo Header -->
+      <div class="p-4 border-b border-[#1E293B] bg-[#060A12]/80 flex items-center justify-center">
+        <div class="w-full flex items-center justify-center p-2 rounded-2xl bg-black/60 border border-orange-500/30 shadow-lg glow-orange-sm">
+          <img src="./assets/logo.jpg" alt="xSpaceMKT Logo" class="h-10 w-auto max-w-full object-contain">
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="p-4 space-y-1.5 text-sm font-medium">
+        <button data-nav-tab="dashboard" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-slate-800/60 nav-active">
+          <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          <span>Dashboard & Visão Geral</span>
+        </button>
+
+        <button data-nav-tab="orders" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+          <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          <div class="flex-1 flex items-center justify-between">
+            <span>Ordens de Serviço (OS)</span>
+          </div>
+        </button>
+
+        <button data-nav-tab="clients" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+          <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <span>Carteira de Clientes</span>
+        </button>
+
+        <button data-nav-tab="cashflow" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Fluxo de Caixa</span>
+        </button>
+
+        <button data-nav-tab="nfc" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+          <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <div class="flex-1 flex items-center justify-between">
+            <span>Gerador Link NFC</span>
+            <span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">NTAG213</span>
+          </div>
+        </button>
+
+        <button data-nav-tab="security" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+          <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <div class="flex-1 flex items-center justify-between">
+            <span>Segurança & Senha</span>
+            <span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">PIN</span>
+          </div>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Agency Info & Backup Buttons -->
+    <div class="p-4 border-t border-[#1E293B] bg-[#060A12]/60">
+      <div class="text-xs text-slate-400 mb-3 flex items-center justify-between">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Modo Local Seguro
+        </span>
+        <div class="flex items-center gap-2">
+          <button id="btn-clear-demo" class="text-[11px] text-rose-400/80 hover:text-rose-400 transition-colors" title="Apagar dados fictícios e começar do zero com dados reais">
+            Limpar Dados
+          </button>
+          <span class="text-slate-600">•</span>
+          <button id="btn-reset-demo" class="text-[11px] text-slate-500 hover:text-orange-400 transition-colors" title="Restaurar dados demo">
+            Demo
+          </button>
+        </div>
+      </div>
+
+      <!-- Primary Action: Export PDF Report -->
+      <button id="btn-export-pdf" onclick="window.XSpace.PdfService.exportPdf()" class="w-full mb-2 px-3 py-2 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg glow-orange-sm transition-all">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span>Exportar Relatório PDF</span>
+      </button>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="window.XSpace.PdfService.openPreviewModal()" class="px-2 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 border border-slate-700 transition-all" title="Ver layout do PDF antes de baixar">
+          <span>👁️ Ver PDF</span>
+        </button>
+        <label class="px-2 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 border border-slate-700 transition-all cursor-pointer" title="Importar backup de dados">
+          <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          Importar
+          <input type="file" id="file-import-backup" accept=".json" class="hidden">
+        </label>
+      </div>
+
+      <div class="mt-2 text-center">
+        <button id="btn-export-backup" class="text-[10px] text-slate-500 hover:text-slate-300 underline">
+          Baixar backup técnico (.json)
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MOBILE BOTTOM NAVIGATION -->
+  <div class="mobile-bottom-bar fixed bottom-0 left-0 right-0 h-16 bg-[#0A0F1A]/95 border-t border-[#1E293B] backdrop-blur-md z-40 px-3 items-center justify-around">
+    <button data-nav-tab="dashboard" class="flex flex-col items-center justify-center text-slate-400 hover:text-white nav-active">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      <span class="text-[10px] mt-1">Dashboard</span>
+    </button>
+    <button data-nav-tab="orders" class="flex flex-col items-center justify-center text-slate-400 hover:text-white">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <span class="text-[10px] mt-1">Ordens</span>
+    </button>
+    <button onclick="window.XSpace.App.openNewOrderModal()" class="w-12 h-12 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center shadow-lg glow-orange -mt-5 border-2 border-[#0A0F1A]">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    </button>
+    <button data-nav-tab="clients" class="flex flex-col items-center justify-center text-slate-400 hover:text-white">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="text-[10px] mt-1">Clientes</span>
+    </button>
+    <button data-nav-tab="cashflow" class="flex flex-col items-center justify-center text-slate-400 hover:text-white">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span class="text-[10px] mt-1">Caixa</span>
+    </button>
+    <button data-nav-tab="security" class="flex flex-col items-center justify-center text-slate-400 hover:text-white">
+      <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      <span class="text-[10px] mt-1">Segurança</span>
+    </button>
+  </div>
+
+  <!-- MAIN APPLICATION CONTENT WRAPPER -->
+  <main class="main-content-wrapper min-h-screen">
+    
+    <!-- TOP HEADER BAR -->
+    <header class="sticky top-0 bg-[#080C14]/90 backdrop-blur-md border-b border-[#1E293B] z-20 px-4 md:px-8 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <!-- Mobile Logo Icon -->
+        <div class="md:hidden flex items-center">
+          <img src="./assets/logo.jpg" alt="xSpaceMKT Logo" class="h-8 w-auto rounded border border-orange-500/30">
+        </div>
+        <div class="hidden md:block">
+          <h1 class="text-lg font-bold text-white font-heading">Painel de Controle</h1>
+          <p class="text-xs text-slate-400">Plaquinhas NFC • SEO Google Meu Negócio • Criação de Designs</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons on Header -->
+      <div class="flex items-center space-x-2.5">
+        <button onclick="window.XSpace.PdfService.exportPdf()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold border border-orange-500/30 transition-all glow-orange-sm shadow-sm" title="Baixar Relatório Executivo Oficial da xSpaceMKT em PDF">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span class="hidden sm:inline">Exportar</span><span>PDF</span>
+        </button>
+
+        <button onclick="window.XSpace.App.openNewClientModal()" class="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all">
+          <span>+ Cliente</span>
+        </button>
+
+        <button onclick="window.XSpace.App.openNewTransactionModal('saida')" class="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 text-xs font-semibold border border-rose-800/40 transition-all">
+          <span>- Despesa</span>
+        </button>
+
+        <button onclick="window.XSpace.App.lockSystem()" class="px-2.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-rose-950/60 hover:text-rose-400 text-slate-300 text-xs font-semibold border border-slate-700 transition-all flex items-center gap-1.5 shadow-sm" title="Bloquear Sistema com Senha">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span class="hidden sm:inline">Bloquear</span>
+        </button>
+
+        <button onclick="window.XSpace.App.openNewOrderModal()" class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white text-xs font-bold shadow-lg glow-orange transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span>Nova OS</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- VIEWS CONTAINER -->
+    <div class="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+
+      <!-- ================= 1. TAB: DASHBOARD ================= -->
+      <section id="tab-pane-dashboard" class="tab-pane space-y-6">
+        
+        <!-- Welcome banner -->
+        <div class="glass-panel p-6 rounded-2xl border border-orange-500/20 bg-gradient-to-r from-[#0F1726] via-[#141E33] to-[#1A1208] relative overflow-hidden">
+          <div class="max-w-2xl">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 mb-3">
+              ⚡ Marketing que Impulsiona
+            </span>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+              Gestão Financeira & Operacional <span class="text-orange-500">xSpaceMKT</span>
+            </h2>
+            <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+              Monitore faturamento em tempo real, fluxo de pedidos de plaquinhas NFC, entregas de SEO Local e criativos em um único lugar.
+            </p>
+          </div>
+        </div>
+
+        <!-- KPI CARDS (TOP 5) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <!-- KPI 1: Saldo Líquido -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 hover:border-emerald-500/40 transition-all glow-emerald">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+              <span>Saldo em Caixa</span>
+              <span class="text-emerald-400 bg-emerald-500/10 p-1.5 rounded-lg">💵</span>
+            </div>
+            <div id="kpi-net-cash" class="text-2xl font-extrabold text-emerald-400 font-heading">
+              R$ 0,00
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">
+              Entradas líquidas acumuladas
+            </div>
+          </div>
+
+          <!-- KPI 2: Faturamento do Mês -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 hover:border-orange-500/40 transition-all">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+              <span>Faturamento Mês</span>
+              <span class="text-orange-400 bg-orange-500/10 p-1.5 rounded-lg">📈</span>
+            </div>
+            <div id="kpi-month-income" class="text-2xl font-extrabold text-white font-heading">
+              R$ 0,00
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">
+              Total recebido no mês
+            </div>
+          </div>
+
+          <!-- KPI 3: A Receber (Pendente) -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 hover:border-amber-500/40 transition-all">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+              <span>Valores a Receber</span>
+              <span class="text-amber-400 bg-amber-500/10 p-1.5 rounded-lg">⏳</span>
+            </div>
+            <div id="kpi-pending-receivables" class="text-2xl font-extrabold text-amber-400 font-heading">
+              R$ 0,00
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">
+              Saldos devedores de OS ativas
+            </div>
+          </div>
+
+          <!-- KPI 4: Despesas Operacionais -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 hover:border-rose-500/40 transition-all">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+              <span>Custos & Despesas</span>
+              <span class="text-rose-400 bg-rose-500/10 p-1.5 rounded-lg">📉</span>
+            </div>
+            <div id="kpi-total-expenses" class="text-2xl font-extrabold text-rose-400 font-heading">
+              R$ 0,00
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">
+              Acrílicos, Chips NFC, Ferramentas
+            </div>
+          </div>
+
+          <!-- KPI 5: Entregas Pendentes / Atrasadas -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 hover:border-orange-500/40 transition-all">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+              <span>Entregas / Prazos</span>
+              <span class="text-orange-400 bg-orange-500/10 p-1.5 rounded-lg">📦</span>
+            </div>
+            <div id="kpi-pending-deliveries" class="text-xl font-bold text-white font-heading">
+              0 em andamento
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">
+              Status de produção atual
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARTS SECTION -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 glass-card p-6 rounded-2xl border border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span>📊</span> Fluxo Financeiro (Últimos Dias)
+              </h3>
+              <span class="text-xs text-slate-400">Entradas vs Despesas</span>
+            </div>
+            <div class="h-64">
+              <canvas id="chart-cashflow"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <span>🎯</span> Serviços xSpaceMKT
+                </h3>
+              </div>
+              <div class="h-52 relative flex items-center justify-center">
+                <canvas id="chart-services"></canvas>
+              </div>
+            </div>
+            <div class="text-xs text-slate-400 text-center mt-2">
+              Distribuição de pedidos por linha de serviço
+            </div>
+          </div>
+        </div>
+
+        <!-- SPLIT SECTION: URGENT ORDERS & RECENT CASHFLOW -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Urgent orders -->
+          <div class="glass-card p-6 rounded-2xl border border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span>🚨</span> Prazos Próximos & Atrasados
+              </h3>
+              <button onclick="window.XSpace.App.switchTab('orders')" class="text-xs font-semibold text-orange-400 hover:text-orange-300">
+                Ver todas →
+              </button>
+            </div>
+            <div id="dashboard-urgent-orders">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Recent Transactions -->
+          <div class="glass-card p-6 rounded-2xl border border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span>💳</span> Últimos Lançamentos no Caixa
+              </h3>
+              <button onclick="window.XSpace.App.openNewTransactionModal('entrada')" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300">
+                + Lançar no Caixa
+              </button>
+            </div>
+            <div id="dashboard-recent-transactions">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= 2. TAB: ORDENS DE SERVIÇO ================= -->
+      <section id="tab-pane-orders" class="tab-pane hidden space-y-6">
+        
+        <!-- Controls Bar -->
+        <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <!-- Search & Filters -->
+          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
+            <div class="relative flex-1 min-w-[200px]">
+              <input type="text" id="filter-orders-search" placeholder="Buscar por OS, cliente ou serviço..." 
+                     class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+                     oninput="window.XSpace.App.filters.ordersSearch = this.value; window.XSpace.App.renderOrders();">
+            </div>
+
+            <!-- Delivery status filter -->
+            <select id="filter-orders-delivery" class="bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500"
+                    onchange="window.XSpace.App.filters.ordersDeliveryStatus = this.value; window.XSpace.App.renderOrders();">
+              <option value="all">Status Entrega: Todos</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Em Produção / Configuração">Em Produção</option>
+              <option value="Pronto para Entrega">Pronto para Entrega</option>
+              <option value="Entregue / Concluído">Entregue / Concluído</option>
+            </select>
+
+            <!-- Payment status filter -->
+            <select id="filter-orders-payment" class="bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500"
+                    onchange="window.XSpace.App.filters.ordersPaymentStatus = this.value; window.XSpace.App.renderOrders();">
+              <option value="all">Pagamento: Todos</option>
+              <option value="Quitado">100% Quitado</option>
+              <option value="Parcial">Com Saldo Devedor</option>
+              <option value="Pendente">Totalmente Pendente</option>
+            </select>
+          </div>
+
+          <!-- View toggler & New OS Button -->
+          <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+            <div class="bg-slate-900 p-1 rounded-xl border border-slate-800 flex items-center space-x-1">
+              <button id="btn-os-view-kanban" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-600 text-white transition-all flex items-center gap-1.5">
+                <span>Quadro Kanban</span>
+              </button>
+              <button id="btn-os-view-table" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+                <span>Tabela</span>
+              </button>
+            </div>
+
+            <button onclick="window.XSpace.App.openNewOrderModal()" class="px-3.5 py-2 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs rounded-xl shadow-lg glow-orange transition-all flex items-center gap-1.5">
+              <span>+ Nova OS</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2.A: KANBAN BOARD VIEW -->
+        <div id="os-kanban-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- Col 1: Pendente -->
+          <div class="bg-[#0B101D] rounded-2xl border border-slate-800 p-4 flex flex-col">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Pendente</h3>
+              </div>
+              <span id="count-col-pendente" class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">0</span>
+            </div>
+            <div id="kanban-col-pendente" class="kanban-col flex-1 space-y-3 p-1 rounded-xl transition-colors">
+              <!-- Order cards injected via JS -->
+            </div>
+          </div>
+
+          <!-- Col 2: Em Produção / Configuração -->
+          <div class="bg-[#0B101D] rounded-2xl border border-slate-800 p-4 flex flex-col">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Em Produção</h3>
+              </div>
+              <span id="count-col-producao" class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">0</span>
+            </div>
+            <div id="kanban-col-producao" class="kanban-col flex-1 space-y-3 p-1 rounded-xl transition-colors">
+              <!-- Order cards injected via JS -->
+            </div>
+          </div>
+
+          <!-- Col 3: Pronto para Entrega -->
+          <div class="bg-[#0B101D] rounded-2xl border border-slate-800 p-4 flex flex-col">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+                <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Pronto para Entrega</h3>
+              </div>
+              <span id="count-col-pronto" class="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">0</span>
+            </div>
+            <div id="kanban-col-pronto" class="kanban-col flex-1 space-y-3 p-1 rounded-xl transition-colors">
+              <!-- Order cards injected via JS -->
+            </div>
+          </div>
+
+          <!-- Col 4: Entregue / Concluído -->
+          <div class="bg-[#0B101D] rounded-2xl border border-slate-800 p-4 flex flex-col">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                <h3 class="font-bold text-xs text-slate-200 uppercase tracking-wider">Entregue / Concluído</h3>
+              </div>
+              <span id="count-col-entregue" class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">0</span>
+            </div>
+            <div id="kanban-col-entregue" class="kanban-col flex-1 space-y-3 p-1 rounded-xl transition-colors">
+              <!-- Order cards injected via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.B: TABLE VIEW -->
+        <div id="os-table-view" class="hidden glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-900/90 text-slate-400 text-xs uppercase border-b border-slate-800">
+                <tr>
+                  <th class="py-3.5 px-4 font-semibold">Código</th>
+                  <th class="py-3.5 px-4 font-semibold">Cliente & Serviço</th>
+                  <th class="py-3.5 px-4 font-semibold">Status Entrega</th>
+                  <th class="py-3.5 px-4 font-semibold">Prazo de Entrega</th>
+                  <th class="py-3.5 px-4 font-semibold">Valores (Total / Saldo)</th>
+                  <th class="py-3.5 px-4 font-semibold">Ação Financeira</th>
+                  <th class="py-3.5 px-4 font-semibold text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table-tbody" class="divide-y divide-slate-800/80">
+                <!-- Rows injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= 3. TAB: CLIENTES ================= -->
+      <section id="tab-pane-clients" class="tab-pane hidden space-y-6">
+        
+        <!-- Search & Action Toolbar -->
+        <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
+            <div class="relative flex-1 min-w-[220px]">
+              <input type="text" id="filter-clients-search" placeholder="Buscar por empresa, responsável ou telefone..." 
+                     class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+                     oninput="window.XSpace.App.filters.clientsSearch = this.value; window.XSpace.App.renderClients();">
+            </div>
+
+            <select id="filter-clients-segment" class="bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500"
+                    onchange="window.XSpace.App.filters.clientsSegment = this.value; window.XSpace.App.renderClients();">
+              <option value="all">Segmento: Todos</option>
+              <option value="Oficina Mecânica">Oficina Mecânica</option>
+              <option value="Barbearia & Estilo">Barbearia & Estilo</option>
+              <option value="Clínica Odontológica">Clínica Odontológica</option>
+              <option value="Restaurante / Lanchonete">Restaurante / Lanchonete</option>
+              <option value="Estética & Beleza">Estética & Beleza</option>
+            </select>
+          </div>
+
+          <button onclick="window.XSpace.App.openNewClientModal()" class="w-full md:w-auto px-4 py-2 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs rounded-xl shadow-lg glow-orange transition-all flex items-center justify-center gap-1.5">
+            <span>+ Novo Cliente</span>
+          </button>
+        </div>
+
+        <!-- Clients Cards Grid -->
+        <div id="clients-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Rendered via JS -->
+        </div>
+
+      </section>
+
+      <!-- ================= 4. TAB: FLUXO DE CAIXA ================= -->
+      <section id="tab-pane-cashflow" class="tab-pane hidden space-y-6">
+        
+        <!-- Summary Cards for Cashflow View -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="glass-card p-5 rounded-2xl border border-slate-800">
+            <span class="text-xs font-semibold text-slate-400">Total de Entradas (Filtro)</span>
+            <div id="cashflow-filtered-income" class="text-xl font-bold text-emerald-400 mt-1">R$ 0,00</div>
+          </div>
+          <div class="glass-card p-5 rounded-2xl border border-slate-800">
+            <span class="text-xs font-semibold text-slate-400">Total de Despesas (Filtro)</span>
+            <div id="cashflow-filtered-expense" class="text-xl font-bold text-rose-400 mt-1">R$ 0,00</div>
+          </div>
+          <div class="glass-card p-5 rounded-2xl border border-slate-800">
+            <span class="text-xs font-semibold text-slate-400">Resultado Líquido</span>
+            <div id="cashflow-filtered-balance" class="text-xl font-bold text-white mt-1">R$ 0,00</div>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
+            <div class="relative flex-1 min-w-[200px]">
+              <input type="text" id="filter-cashflow-search" placeholder="Buscar descrição, cliente ou categoria..." 
+                     class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+                     oninput="window.XSpace.App.filters.cashflowSearch = this.value; window.XSpace.App.renderCashflow();">
+            </div>
+
+            <select id="filter-cashflow-type" class="bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500"
+                    onchange="window.XSpace.App.filters.cashflowType = this.value; window.XSpace.App.renderCashflow();">
+              <option value="all">Tipo: Todos</option>
+              <option value="entrada">Apenas Entradas (+)</option>
+              <option value="saida">Apenas Despesas (-)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+            <button onclick="window.XSpace.App.openNewTransactionModal('entrada')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5">
+              <span>+ Entrada</span>
+            </button>
+            <button onclick="window.XSpace.App.openNewTransactionModal('saida')" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5">
+              <span>- Despesa</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cashflow Statement Table -->
+        <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-900/90 text-slate-400 text-xs uppercase border-b border-slate-800">
+                <tr>
+                  <th class="py-3.5 px-4 font-semibold">Data</th>
+                  <th class="py-3.5 px-4 font-semibold">Tipo</th>
+                  <th class="py-3.5 px-4 font-semibold">Descrição / Referência</th>
+                  <th class="py-3.5 px-4 font-semibold">Categoria</th>
+                  <th class="py-3.5 px-4 font-semibold">Pagamento</th>
+                  <th class="py-3.5 px-4 font-semibold text-right">Valor (R$)</th>
+                  <th class="py-3.5 px-4 font-semibold text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="cashflow-table-tbody" class="divide-y divide-slate-800/80">
+                <!-- Rows injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= 5. TAB: GERADOR LINK NFC GOOGLE ================= -->
+      <section id="tab-pane-nfc" class="tab-pane hidden space-y-6">
+        
+        <div class="glass-panel p-6 rounded-2xl border border-orange-500/30 bg-gradient-to-br from-[#0F1726] to-[#150F08]">
+          <div class="flex items-center space-x-3 mb-2">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 text-lg font-bold">
+              📡
+            </div>
+            <div>
+              <h2 class="text-xl font-extrabold text-white">Gerador & Analisador de Link NFC (Google Meu Negócio)</h2>
+              <p class="text-xs text-slate-400">Monte a URL oficial para gravação em tags NFC NTAG213 para avaliação 5 estrelas direta.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left: Input & Analysis -->
+          <div class="lg:col-span-2 glass-card p-6 rounded-2xl border border-slate-800 space-y-5">
+            <div>
+              <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                1. Digite ou cole o Place ID do Google:
+              </label>
+              <div class="relative">
+                <input type="text" id="nfc-input-placeid" placeholder="Ex: ChIJ6wrcMwCLpJIR4l-700RbfAA" 
+                       value="ChIJ6wrcMwCLpJIR4l-700RbfAA"
+                       class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-slate-600 focus:outline-none focus:border-orange-500">
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1.5">
+                💡 Dica: O Place ID pode ser obtido na ferramenta do Google Place ID Finder ou colando a URL de avaliação do cliente.
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                2. URL Oficial de Avaliação Direta Gerada:
+              </label>
+              <div class="flex items-center space-x-2">
+                <input type="text" id="nfc-output-url" readonly 
+                       class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-orange-400 font-mono select-all">
+                <button id="btn-copy-nfc-url" class="px-4 py-3 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-lg glow-orange-sm whitespace-nowrap">
+                  <span>📋 Copiar</span>
+                </button>
+                <button id="btn-test-nfc-url" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl border border-slate-700 transition-all whitespace-nowrap" title="Abrir link em nova aba">
+                  <span>↗ Testar</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Byte capacity analysis -->
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-300 font-semibold">Tamanho para gravação no chip NFC (NTAG213):</span>
+                <span id="nfc-byte-count" class="font-mono font-bold text-orange-400">0 / 144 bytes</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                <div id="nfc-byte-progress" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 50%;"></div>
+              </div>
+              <div id="nfc-byte-status-alert" class="text-xs">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Technical Instructions -->
+            <div class="p-4 rounded-xl bg-orange-500/5 border border-orange-500/20 text-xs text-slate-300 space-y-2">
+              <div class="font-bold text-orange-400 flex items-center gap-1.5">
+                <span>📱</span> Passo a Passo de Gravação no Celular:
+              </div>
+              <ol class="list-decimal list-inside space-y-1 text-slate-300">
+                <li>Instale o app gratuito <strong>NFC Tools</strong> (Android ou iOS).</li>
+                <li>Clique em <strong>Escrever (Write)</strong> → <strong>Adicionar um registro (Add record)</strong>.</li>
+                <li>Escolha <strong>URL / URI</strong> e cole o link copiado acima.</li>
+                <li>Aproxime a plaquinha com o chip NTAG213 da traseira do smartphone até vibrar e confirmar a escrita!</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Right: Live QR Code Card -->
+          <div class="glass-card p-6 rounded-2xl border border-slate-800 flex flex-col items-center justify-between text-center">
+            <div>
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">QR Code de Backup</span>
+              <div class="p-4 bg-white rounded-2xl shadow-xl border-4 border-orange-500/30 inline-block mb-3">
+                <img id="nfc-qrcode-image" src="" alt="QR Code" class="w-44 h-44 object-contain">
+              </div>
+              <p class="text-xs text-slate-400">
+                Imprima este QR Code junto à plaquinha para celulares sem NFC.
+              </p>
+            </div>
+
+            <div class="w-full pt-4 border-t border-slate-800">
+              <button onclick="window.print()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-all">
+                🖨️ Imprimir QR Code da Placa
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= 6. TAB: SEGURANÇA & PROTEÇÃO POR SENHA ================= -->
+      <section id="tab-pane-security" class="tab-pane hidden space-y-6">
+        
+        <!-- Header Banner -->
+        <div class="glass-panel p-6 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#0F1726] to-[#181108]">
+          <div class="flex items-center space-x-3 mb-2">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg font-bold">
+              🔒
+            </div>
+            <div>
+              <h2 class="text-xl font-extrabold text-white">Segurança & Controle de Acesso Restrito</h2>
+              <p class="text-xs text-slate-400">Proteja as informações financeiras, clientes e ordens de serviço contra acessos não autorizados.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Column 1: Alterar Senha & Ação de Bloqueio -->
+          <div class="space-y-6">
+            
+            <!-- Card: Alterar Senha -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span>🔑</span> Alterar Senha do Sistema
+                </h3>
+                <span id="security-status-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                  Proteção Ativa
+                </span>
+              </div>
+
+              <form id="form-change-password" onsubmit="event.preventDefault(); window.XSpace.App.changePasswordFormSubmit();" class="space-y-3.5 text-xs">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Senha Atual *</label>
+                  <div class="relative">
+                    <input type="password" id="input-curr-pwd" required placeholder="Digite a senha atual..."
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500 font-mono">
+                    <button type="button" onclick="window.XSpace.App.togglePasswordVisibility('input-curr-pwd', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">
+                      👁️
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Nova Senha * (mínimo 3 caracteres ou números)</label>
+                  <div class="relative">
+                    <input type="password" id="input-new-pwd" required placeholder="Digite a nova senha..."
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500 font-mono">
+                    <button type="button" onclick="window.XSpace.App.togglePasswordVisibility('input-new-pwd', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">
+                      👁️
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Confirmar Nova Senha *</label>
+                  <div class="relative">
+                    <input type="password" id="input-confirm-pwd" required placeholder="Confirme a nova senha..."
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500 font-mono">
+                    <button type="button" onclick="window.XSpace.App.togglePasswordVisibility('input-confirm-pwd', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">
+                      👁️
+                    </button>
+                  </div>
+                </div>
+
+                <div class="pt-2">
+                  <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg glow-orange-sm transition-all flex items-center justify-center gap-2">
+                    <span>Salvar Nova Senha</span>
+                    <span>✓</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Card: Bloquear Agora -->
+            <div class="glass-card p-6 rounded-2xl border border-rose-900/40 bg-gradient-to-r from-[#170E12] to-[#0F1726] space-y-3">
+              <div class="flex items-center space-x-2 text-rose-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <h3 class="text-sm font-bold text-white">Bloquear Sistema Imediatamente</h3>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Vai se afastar do computador ou está atendendo um cliente na rua e deseja ocultar as métricas de faturamento e clientes? Bloqueie agora em 1 clique.
+              </p>
+              <button onclick="window.XSpace.App.lockSystem()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg glow-rose transition-all flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <span>Bloquear Tela Agora (Sair)</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Column 2: Preferências & Dicas de Segurança -->
+          <div class="space-y-6">
+
+            <!-- Card: Preferências de Proteção -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                <span>⚙️</span> Preferências de Bloqueio
+              </h3>
+
+              <form id="form-security-preferences" onsubmit="event.preventDefault(); window.XSpace.App.saveSecurityPreferences();" class="space-y-4 text-xs">
+                
+                <!-- Toggle Protection Enabled -->
+                <div class="flex items-center justify-between p-3.5 bg-slate-900/90 rounded-xl border border-slate-800">
+                  <div>
+                    <div class="font-bold text-white text-xs">Exigir Senha ao Abrir o Sistema</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Exibe a tela de bloqueio e exige a senha para ver os dados.</div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="security-toggle-enabled" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                  </label>
+                </div>
+
+                <!-- Auto-lock timeout -->
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Bloqueio Automático por Inatividade</label>
+                  <select id="security-select-autolock" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs">
+                    <option value="5">Bloquear após 5 minutos sem uso</option>
+                    <option value="15" selected>Bloquear após 15 minutos sem uso (Recomendado)</option>
+                    <option value="30">Bloquear após 30 minutos sem uso</option>
+                    <option value="60">Bloquear após 1 hora sem uso</option>
+                    <option value="0">Desativar bloqueio automático</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-2">
+                  <span>Salvar Preferências</span>
+                  <span>💾</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Card: Recomendações de Segurança -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                <span>🛡️</span> Boas Práticas Operacionais xSpaceMKT
+              </h3>
+              
+              <ul class="space-y-2.5 text-xs text-slate-300">
+                <li class="flex items-start gap-2">
+                  <span class="text-orange-400 font-bold">1.</span>
+                  <span><strong>Operação em Campo / Rua:</strong> Quando for demonstrar o <em>Gerador Link NFC</em> para um cliente, mantenha a tela nessa ferramenta e bloqueie o sistema caso precise entregar o celular.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-orange-400 font-bold">2.</span>
+                  <span><strong>Senha Padrão:</strong> A senha padrão inicial é <code class="bg-slate-800 px-1 py-0.5 rounded text-orange-400 font-mono">1234</code>. Lembre-se de alterá-la para uma senha pessoal da gerência.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-orange-400 font-bold">3.</span>
+                  <span><strong>Exportação e Backup:</strong> Exporte periodicamente o relatório em PDF e o backup técnico (.json) para manter seu histórico sempre seguro.</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Card: Gestão de Dados (Produção vs Demo) -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                <span>🗄️</span> Gestão da Base de Dados
+              </h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Pronto para colocar o sistema em produção com os clientes reais da sua agência? Você pode zerar os dados de teste com segurança em 1 clique ou restaurar os exemplos a qualquer momento.
+              </p>
+              <div class="flex flex-col sm:flex-row gap-2 pt-1">
+                <button onclick="window.XSpace.App.clearAllDemoData()" class="flex-1 py-2.5 px-3 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 hover:text-rose-200 border border-rose-500/30 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <span>Limpar Dados de Teste (Zerar Tudo)</span>
+                </button>
+                <button onclick="document.getElementById('btn-reset-demo').click()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1.5">
+                  <span>Recarregar Exemplos</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- 1. MODAL: NOVA / EDITAR ORDEM DE SERVIÇO -->
+  <div id="modal-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#0F1726] border border-slate-700 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl my-8">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-[#0A0F1A]">
+        <h3 id="modal-order-title" class="font-heading font-bold text-base text-white">Nova Ordem de Serviço</h3>
+        <button onclick="window.XSpace.App.hideModal('modal-order')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <form id="form-order" onsubmit="event.preventDefault(); window.XSpace.App.saveOrderForm();" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="form-order-id">
+
+        <!-- Cliente -->
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Cliente Vinculado *</label>
+          <div class="flex gap-2">
+            <select id="form-order-client-select" required class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:border-orange-500">
+              <!-- Injected via JS -->
+            </select>
+            <button type="button" onclick="window.XSpace.App.openNewClientModal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-orange-400 font-bold rounded-xl border border-slate-700">
+              + Novo
+            </button>
+          </div>
+        </div>
+
+        <!-- Tipo de Serviço -->
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Tipo de Serviço *</label>
+          <select id="form-order-service" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:border-orange-500">
+            <option value="Plaquinha NFC Google">Plaquinha NFC Google (Avaliação 5 Estrelas)</option>
+            <option value="Otimização Google Meu Negócio">Otimização Google Meu Negócio (SEO Local)</option>
+            <option value="Criação de Designs / Criativos">Criação de Designs / Criativos & Banners</option>
+            <option value="Pacote Combo (NFC + GMB + Design)">Pacote Combo (Plaquinha + GMB + Design)</option>
+            <option value="Personalizado">Serviço Personalizado</option>
+          </select>
+        </div>
+
+        <!-- Financial Section: Total, Paid, Remaining -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Valor Total (R$) *</label>
+            <input type="number" step="0.01" min="0" id="form-order-total" required placeholder="0.00"
+                   class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-semibold focus:outline-none focus:border-orange-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Valor Pago Entrada (R$)</label>
+            <input type="number" step="0.01" min="0" id="form-order-paid" placeholder="0.00"
+                   class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-emerald-400 font-semibold focus:outline-none focus:border-orange-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Saldo a Pagar</label>
+            <div id="form-order-remaining-display" class="w-full py-2 px-1 text-slate-400 font-bold text-sm">
+              R$ 0,00
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method of Initial Entry -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Forma de Pagto da Entrada</label>
+            <select id="form-order-paymethod" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+              <option value="PIX">PIX (Imediato)</option>
+              <option value="Cartão de Crédito">Cartão de Crédito</option>
+              <option value="Cartão de Débito">Cartão de Débito</option>
+              <option value="Dinheiro">Dinheiro em Espécie</option>
+              <option value="Boleto">Boleto Bancário</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Status da Entrega *</label>
+            <select id="form-order-status" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+              <option value="Pendente">Pendente</option>
+              <option value="Em Produção / Configuração">Em Produção / Configuração</option>
+              <option value="Pronto para Entrega">Pronto para Entrega</option>
+              <option value="Entregue / Concluído">Entregue / Concluído</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Deadlines -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Data do Pedido *</label>
+            <input type="date" id="form-order-date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs default-today">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Prazo de Entrega *</label>
+            <input type="date" id="form-order-deadline" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+          </div>
+        </div>
+
+        <!-- Technical Links: Place ID & Drive -->
+        <div class="space-y-2">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Place ID do Google / Link Maps</label>
+            <input type="text" id="form-order-placeid" placeholder="Ex: ChIJ6wrcMwCLpJIR4l-700RbfAA" 
+                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Link Pasta de Arquivos / Canva / Drive</label>
+            <input type="url" id="form-order-drive" placeholder="https://drive.google.com/..." 
+                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+          </div>
+        </div>
+
+        <!-- Observações -->
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Observações do Pedido</label>
+          <textarea id="form-order-notes" rows="2" placeholder="Detalhes de personalização, número de placas, cor da base acrílica..." 
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-end space-x-2">
+          <button type="button" onclick="window.XSpace.App.hideModal('modal-order')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg glow-orange">
+            Salvar Ordem
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. MODAL: NOVO / EDITAR CLIENTE -->
+  <div id="modal-client" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#0F1726] border border-slate-700 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl my-8">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-[#0A0F1A]">
+        <h3 id="modal-client-title" class="font-heading font-bold text-base text-white">Novo Cliente</h3>
+        <button onclick="window.XSpace.App.hideModal('modal-client')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <form id="form-client" onsubmit="event.preventDefault(); window.XSpace.App.saveClientForm();" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="form-client-id">
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Nome da Empresa / Fantasia *</label>
+          <input type="text" id="form-client-company" required placeholder="Ex: Auto Center São Jorge" 
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Nome do Responsável *</label>
+            <input type="text" id="form-client-contact" required placeholder="Ex: Jorge Silva" 
+                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">WhatsApp (DDD + Número) *</label>
+            <input type="text" id="form-client-phone" required placeholder="11988887777" 
+                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Segmento do Negócio *</label>
+          <select id="form-client-segment" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+            <option value="Oficina Mecânica">Oficina Mecânica / Auto Peças</option>
+            <option value="Barbearia & Estilo">Barbearia / Salão</option>
+            <option value="Clínica Odontológica">Clínica Odontológica / Médica</option>
+            <option value="Restaurante / Lanchonete">Restaurante / Lanchonete / Cafeteria</option>
+            <option value="Estética & Beleza">Estética & Spa</option>
+            <option value="Loja & Varejo">Loja & Varejo</option>
+            <option value="Outros">Outro Segmento</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Endereço Completo / Bairro</label>
+          <input type="text" id="form-client-address" placeholder="Rua, número, bairro e cidade" 
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Place ID do Google (Opcional)</label>
+          <input type="text" id="form-client-placeid" placeholder="ChIJ..." 
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white font-mono">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Observações Internas</label>
+          <textarea id="form-client-notes" rows="2" placeholder="Histórico de negociações, preferências..." 
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-end space-x-2">
+          <button type="button" onclick="window.XSpace.App.hideModal('modal-client')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg glow-orange">
+            Salvar Cliente
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. MODAL: LANÇAR TRANSAÇÃO NO FLUXO DE CAIXA -->
+  <div id="modal-transaction" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#0F1726] border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl my-8">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-[#0A0F1A]">
+        <h3 class="font-heading font-bold text-base text-white">Lançar no Caixa</h3>
+        <button onclick="window.XSpace.App.hideModal('modal-transaction')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <form id="form-tx" onsubmit="event.preventDefault(); window.XSpace.App.saveTransactionForm();" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Tipo de Lançamento *</label>
+          <select id="form-tx-type" required onchange="window.XSpace.App.updateTxCategoryOptions(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-bold">
+            <option value="entrada" class="text-emerald-400">Entrada (+) Recebimento</option>
+            <option value="saida" class="text-rose-400">Saída (-) Despesa / Custo Operacional</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Descrição do Lançamento *</label>
+          <input type="text" id="form-tx-description" required placeholder="Ex: Compra de 50 placas acrílicas" 
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Valor (R$) *</label>
+            <input type="number" step="0.01" min="0.01" id="form-tx-amount" required placeholder="0.00" 
+                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white font-bold text-sm">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Forma de Pagto</label>
+            <select id="form-tx-paymethod" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+              <option value="PIX">PIX</option>
+              <option value="Cartão de Crédito">Cartão de Crédito</option>
+              <option value="Cartão de Débito">Cartão de Débito</option>
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="Boleto">Boleto</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Categoria *</label>
+            <select id="form-tx-category" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Data *</label>
+            <input type="date" id="form-tx-date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Cliente Vinculado (Opcional)</label>
+          <select id="form-tx-client-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-end space-x-2">
+          <button type="button" onclick="window.XSpace.App.hideModal('modal-transaction')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg">
+            Registrar Lançamento
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. MODAL: RECEBER RESTANTE / DAR BAIXA (AUTOMAÇÃO INTELIGENTE) -->
+  <div id="modal-receive-debt" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-[#0F1726] border border-emerald-500/40 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-emerald-950/40">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">💰</span>
+          <h3 class="font-heading font-bold text-base text-emerald-400">Receber Saldo & Quitar OS</h3>
+        </div>
+        <button onclick="window.XSpace.App.hideModal('modal-receive-debt')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="debt-modal-order-id">
+
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Cliente:</span>
+            <span id="debt-modal-client-name" class="font-bold text-white text-sm"></span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Serviço:</span>
+            <span id="debt-modal-service-name" class="text-orange-400 font-medium"></span>
+          </div>
+          <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+            <span class="text-slate-300 font-semibold">Valor a Receber:</span>
+            <span id="debt-modal-amount" class="text-2xl font-extrabold text-emerald-400 font-heading"></span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Forma de Pagamento Recebida *</label>
+          <select id="debt-modal-paymethod" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xs font-semibold">
+            <option value="PIX">PIX (Imediato)</option>
+            <option value="Dinheiro">Dinheiro em Espécie</option>
+            <option value="Cartão de Débito">Cartão de Débito</option>
+            <option value="Cartão de Crédito">Cartão de Crédito</option>
+            <option value="Boleto">Boleto Quitado</option>
+          </select>
+        </div>
+
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          ⚡ <strong>Automação xSpaceMKT:</strong> Ao confirmar, o sistema quitará a dívida da Ordem de Serviço e criará automaticamente uma Entrada no Fluxo de Caixa vinculada.
+        </p>
+
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-end space-x-2">
+          <button type="button" onclick="window.XSpace.App.hideModal('modal-receive-debt')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl">
+            Cancelar
+          </button>
+          <button type="button" onclick="window.XSpace.App.confirmReceiveDebt()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg glow-emerald">
+            Confirmar Recebimento ✓
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. MODAL: HISTÓRICO COMPLETO DO CLIENTE -->
+  <div id="modal-client-history" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#0F1726] border border-slate-700 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl my-8">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-[#0A0F1A]">
+        <div>
+          <h3 id="history-modal-client-name" class="font-heading font-bold text-base text-white">Cliente</h3>
+          <p id="history-modal-contact" class="text-xs text-slate-400"></p>
+        </div>
+        <button onclick="window.XSpace.App.hideModal('modal-client-history')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <!-- Client Stats -->
+        <div class="grid grid-cols-3 gap-3 bg-slate-900 p-3.5 rounded-xl border border-slate-800 text-center">
+          <div>
+            <div class="text-slate-400 text-[10px] uppercase font-semibold">Total Investido (LTV)</div>
+            <div id="history-modal-ltv" class="text-sm font-extrabold text-emerald-400 mt-0.5">R$ 0,00</div>
+          </div>
+          <div>
+            <div class="text-slate-400 text-[10px] uppercase font-semibold">Ordens Contratadas</div>
+            <div id="history-modal-orders-count" class="text-sm font-extrabold text-white mt-0.5">0</div>
+          </div>
+          <div>
+            <div class="text-slate-400 text-[10px] uppercase font-semibold">Saldo Devedor</div>
+            <div id="history-modal-debt" class="text-sm font-extrabold text-amber-400 mt-0.5">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-300 text-xs mb-2 uppercase tracking-wider">Histórico de Ordens de Serviço:</h4>
+          <div id="history-modal-orders-list" class="max-h-60 overflow-y-auto space-y-2 pr-1">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex justify-end">
+          <button onclick="window.XSpace.App.hideModal('modal-client-history')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl">
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. MODAL: VISUALIZAÇÃO E IMPRESSÃO DO RELATÓRIO PDF PERSONALIZADO -->
+  <div id="modal-pdf-preview" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden items-center justify-center p-3 md:p-6 overflow-y-auto">
+    <div class="bg-[#0F1726] border border-orange-500/40 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-[#0A0F1A]">
+        <div class="flex items-center space-x-2.5">
+          <span class="text-orange-500 text-lg">📄</span>
+          <div>
+            <h3 class="font-heading font-bold text-sm text-white">Relatório Oficial de Gestão - xSpaceMKT</h3>
+            <p class="text-[11px] text-slate-400">Layout executivo personalizado para download em PDF ou impressão direta</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="window.XSpace.PdfService.printReport()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-all flex items-center gap-1.5">
+            <span>🖨️ Imprimir</span>
+          </button>
+          <button onclick="window.XSpace.PdfService.exportPdf()" class="px-3.5 py-1.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white text-xs font-bold rounded-xl shadow-lg glow-orange transition-all flex items-center gap-1.5">
+            <span>⬇ Baixar PDF (.pdf)</span>
+          </button>
+          <button onclick="window.XSpace.App.hideModal('modal-pdf-preview')" class="text-slate-400 hover:text-white text-lg ml-2">✕</button>
+        </div>
+      </div>
+
+      <!-- Preview container -->
+      <div id="pdf-preview-modal-body" class="p-4 md:p-6 overflow-y-auto bg-slate-200/90 text-slate-900 flex-1">
+        <!-- Rendered Report HTML injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="./js/utils.js"></script>
+  <script src="./js/storage.js"></script>
+  <script src="./js/pdf.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
